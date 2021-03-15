@@ -1,0 +1,137 @@
+#include<bits/stdc++.h>
+#include<iostream>
+using namespace std;
+
+/*
+insert and remove_min both functions take log(n) time complexity. Note that we have to 
+maintain the min_heap/max_heap property even after removing the minimum/maximum element 
+and this takes logn time.
+
+1)if the parent is at index i, then its left child is at index (2*i+1) and its right child is 
+at index (2*i+2).
+2)if the child is at index i,then its parent is at index (i-1)/2.
+
+the above 2 points are the most important ones while dealing with heaps.Since heaps are 
+ALMOST COMPLETE BINARY TREES,there will be no right child unless and untill if there exists
+a left child.We always fill the left child first and then the right child.*/
+
+
+int size=0;
+int last_index=-1; //last_index is always size-1
+int a[1000001];
+
+bool min_heap_property(int parent_index,int child_index)
+{
+    if(a[parent_index]<=a[child_index])
+    return true;
+    else
+    return false;
+}
+void insert(int v)
+{
+/* We will always insert at the back first and then move the element up to its appropriate
+position.*/
+      size++;
+      last_index++;
+      a[last_index]=v;
+/*after inserting at the end ,note that we have to now maintain the min/max heap property.
+Our newly inserted element is at last_index.So its parent is at index (last_index-1)/2.
+Let us build min heap.So we will check if a[parent_index]<a[last_index]. If this property is 
+satisfied,then we have no work to do. If this property is not satisfied,we need to loop 
+and find the exact position of our last inserted element.At this position the condition of 
+min heap is satisfied and our inserted element will be at the correct position.*/
+      if(size==1)
+      return;
+      int parent_index = (last_index-1)/2;
+      int child_index = last_index;
+      int temp;//used to swap child and parent if necessary
+      while(!min_heap_property(parent_index,child_index) && child_index!=0)
+      {
+          /* if the min heap property is not satisfied,then we will swap the elements in 
+          parent_index and child_index. Then we will move to one level up to check the 
+          same condition again. So we will change the child and parent index accordingly.
+          At some point,the child_index may become 0(which is the root node).In this case,
+          we dont have any parent and hence we will exit from this loop.So thats the reason
+          we have second condition in the above while loop.*/
+          temp = a[child_index];
+          a[child_index] = a[parent_index];
+          a[parent_index] = temp;
+          
+          /* we will now move up my one level.*/
+          child_index = parent_index;
+          parent_index = (child_index-1)/2;
+      }
+      return;
+}
+
+int remove_min()
+{
+    /* Generally the minimum element is located at index 0.We will swap a[0] and a[last_index].
+    We will then decrement the last index and size by 1. Now we will start from the root 
+    and check the min/max heap condition.If its not satisfying,then we will swap the elements
+    and move one level down the heap.Note that in insertion,we started from the last index 
+    and movedup and in deletion,we will start from the root and move down the level.*/
+    if(size==0)
+    return INT_MIN;
+    else
+    {
+        int m = a[0];
+        a[0] = a[last_index];
+        last_index--;
+        size--;
+        int i=0; //we will start from the root and go down 
+        int j;   // minimum between left and right child 
+        int temp; //for swaping 
+        while((2*i+1)<size)
+        {
+            /* we will mind the minimum between the left and right child of our current node.*/
+            j = 2*i+1;
+            if((2*i+2)<size)
+            {
+                //this means that our node has both left and right child 
+                if(a[2*i+1]>a[2*i+2])
+                {
+                    j=2*i+2; 
+                    //this means the right child is the minimum between left and right 
+                }
+            }
+            
+            //we will now find the minimum between our parent and child 
+            if(a[i]>a[j])
+            {
+                //we will swap a[i] and a[j] since min_heap property is violated 
+                temp = a[i];
+                a[i] = a[j];
+                a[j] = temp;
+                i=j;
+            }
+            else
+            break;
+        }
+    }
+}
+
+
+int main()
+{
+    insert(12);
+    insert(44);
+    insert(32);
+    insert(19);
+    insert(25);
+    insert(87);
+    insert(3);
+    insert(71);
+    insert(1);
+    for(int i=0;i<size;i++)
+    cout<<a[i]<<" ";
+    cout<<endl;
+    /* output : 1 3 12 19 25 87 32 71 44 */ 
+    
+    remove_min();
+    remove_min();
+    for(int i=0;i<size;i++)
+    cout<<a[i]<<" ";
+    cout<<endl;
+    /* output : 12 19 32 44 25 87 71 */
+}
